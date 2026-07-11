@@ -1,0 +1,22 @@
+default_stages: [pre-commit]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        language: system
+        entry: gofmt -w
+        files: \.go$
+      - id: web-format
+        name: web format
+        language: system
+        entry: npm --prefix apps/web-dashboard run format
+        files: ^apps/web-dashboard/.*\.(ts|tsx|json|css)$
+        pass_filenames: false
