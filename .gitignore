@@ -1,0 +1,9 @@
+.env
+.env.local
+*.local
+node_modules/
+dist/
+coverage/
+*.coverprofile
+bin/
+.DS_Store

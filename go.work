@@ -1,0 +1,9 @@
+go 1.26
+
+use (
+	./platform
+	./services/enrollment
+	./services/heartbeat
+	./services/notification
+	./services/witness-coordination
+)
