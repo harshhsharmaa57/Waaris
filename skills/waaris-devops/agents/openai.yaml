@@ -1,0 +1,4 @@
+interface:
+  display_name: "Waaris DevOps"
+  short_description: "Operate cloud-native infrastructure and CI safely."
+  default_prompt: "Plan or implement the requested Waaris platform change."

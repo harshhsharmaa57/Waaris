@@ -396,8 +396,9 @@ interface IWillRegistry {
 ```
 waaris/
 ├── apps/
-│   ├── mobile/                # React Native enrollment + check-in app
-│   └── web-dashboard/         # Trustee / nominee portal (React + TS)
+│   ├── mobile/                # Reserved for React Native enrollment + check-in app
+│   └── web-dashboard/         # React + TypeScript + Tailwind trustee / nominee portal
+├── platform/                  # Shared Go infrastructure primitives (no domain logic)
 ├── services/
 │   ├── enrollment/            # Go — will creation, category tagging
 │   ├── heartbeat/             # Go — liveness check-in ingestion
@@ -413,8 +414,11 @@ waaris/
 │   ├── mpc/                   # threshold secret sharing, FROST/BLS
 │   └── zk-circuits/           # gnark / circom circuits for witness proofs
 ├── infra/
-│   ├── terraform/
-│   └── k8s/
+│   ├── migrations/            # Versioned PostgreSQL SQL migrations
+│   ├── terraform/             # Reserved for infrastructure as code
+│   └── k8s/                   # Reserved for deployment manifests
+├── docker-compose.yml          # Local PostgreSQL, Redis, Mailpit, migrations, services, web
+├── Makefile                    # Common local development commands
 └── docs/
     └── architecture/
 ```
@@ -423,24 +427,28 @@ waaris/
 
 ## 14. Local Development Setup
 
-> Placeholder — fill in as the implementation progresses.
-
 ```bash
 # Clone
 git clone https://github.com/<org>/waaris.git && cd waaris
 
-# Backend services (Go)
-cd services/enrollment && go mod tidy && go run ./cmd/server
+# Bootstrap local environment and web dependencies
+cp .env.example .env
+make bootstrap
 
-# Local chain (for contract development)
-cd contracts && npx hardhat node
+# Run quality checks (Go formatting/vet/tests; web formatting/lint/tests/build)
+make check
 
-# Mobile app
-cd apps/mobile && npm install && npm run android   # or ios
+# Start PostgreSQL, Redis, Mailpit, migrations, backend service shells, and web dashboard
+make up
 
-# Full stack via Docker Compose (Postgres, Redis, NATS, local chain)
-docker compose up -d
+# Inspect local services
+make ps
+# Web dashboard: http://localhost:3000
+# Mailpit: http://localhost:8025
+# Enrollment health: http://localhost:8081/healthz
 ```
+
+The initial Go services expose only `/healthz` and `/readyz`; no business, cryptographic, blockchain, or sensitive-data behavior is available in the foundation milestone. Docker Desktop (or another Docker daemon) must be running before `make up`.
 
 ---
 

@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Go checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          cache-dependency-path: |
+            platform/go.mod
+            services/*/go.mod
+      - name: Verify formatting
+        run: test -z "$(gofmt -l platform services)"
+      - name: Test and vet
+        run: |
+          go test ./platform/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
+          go vet ./platform/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
+      - name: Build services
+        run: |
+          for service in enrollment heartbeat notification witness-coordination; do
+            go build ./services/$service/cmd/server
+          done
+
+  web:
+    name: Web checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web-dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: apps/web-dashboard/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  containers:
+    name: Container build and compose validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose
+        run: POSTGRES_PASSWORD=ci-only docker compose config --quiet
+      - name: Build images
+        run: POSTGRES_PASSWORD=ci-only docker compose build

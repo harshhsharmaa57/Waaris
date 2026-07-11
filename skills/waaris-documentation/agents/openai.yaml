@@ -1,0 +1,4 @@
+interface:
+  display_name: "Waaris Documentation"
+  short_description: "Maintain Waaris living technical documentation."
+  default_prompt: "Update the affected Waaris documentation."

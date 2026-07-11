@@ -1,0 +1,4 @@
+interface:
+  display_name: "Waaris Blockchain"
+  short_description: "Gate and review deferred contract work."
+  default_prompt: "Assess the requested Waaris blockchain change."
