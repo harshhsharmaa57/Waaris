@@ -41,7 +41,7 @@ PostgreSQL stores only metadata required to coordinate a will. Redis stores ephe
 
 ## Migration approach
 
-Use ordered, reviewed SQL migrations, one logical change per migration, reversible where safe. CI provisions a fresh database and applies every migration; integration tests exercise constraints and rollback behavior. Seed data must be synthetic.
+Use ordered, reviewed SQL migrations, one logical change per migration, reversible where safe. CI provisions a fresh database and applies every migration; integration tests exercise constraints and rollback behavior. Seed data must be synthetic. The Makefile deliberately has no automated down-migration command: destructive rollback requires an explicit, reviewed operator command.
 
 ## Last updated
 

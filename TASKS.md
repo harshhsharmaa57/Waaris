@@ -11,6 +11,16 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 - [x] Create the initial living documentation set.
 - [x] Review relevant OpenAI skills and create the Waaris engineering workflow skill suite.
 
+## Done: Milestone 1 — Project Foundation
+
+- [x] Create the monorepo skeleton and placeholders for all README architectural boundaries.
+- [x] Create Go workspace modules and independently buildable health-only shells for enrollment, heartbeat, notification, and witness coordination.
+- [x] Create the React + TypeScript + Tailwind web-dashboard scaffold with lint, test, format, and production-build scripts.
+- [x] Add Docker Compose for PostgreSQL, Redis, Mailpit, migrations, backend shells, and frontend shell.
+- [x] Add PostgreSQL migration baseline and migration runner.
+- [x] Add `.env.example` files, Makefile commands, EditorConfig, Git attributes/ignore rules, and pre-commit configuration.
+- [x] Add GitHub Actions checks for Go formatting/tests/vet/build, web format/lint/test/build, and Compose/image validation.
+
 ## Next: Phase 0 foundation
 
 - [ ] Establish repository layout and toolchain manifests for Go, TypeScript, React Native, Solidity, and Python components.
@@ -41,4 +51,4 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 
 ## Last updated
 
-2026-07-11 — skills selection and custom-skill task completed.
+2026-07-11 — Milestone 1 project foundation completed; remaining Phase 0 items retained.
