@@ -1,0 +1,4 @@
+interface:
+  display_name: "Waaris Project Memory"
+  short_description: "Maintain project context and task records."
+  default_prompt: "Synchronize Waaris project memory after this task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Waaris Architecture"
+  short_description: "Review Waaris boundaries and decisions."
+  default_prompt: "Review the Waaris architecture for this change."

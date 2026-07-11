@@ -1,0 +1,4 @@
+interface:
+  display_name: "Waaris Backend"
+  short_description: "Build and verify safe Go services and APIs."
+  default_prompt: "Implement the requested Waaris backend change safely."

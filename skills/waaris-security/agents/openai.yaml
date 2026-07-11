@@ -1,0 +1,4 @@
+interface:
+  display_name: "Waaris Security"
+  short_description: "Apply Waaris safety and threat-model gates."
+  default_prompt: "Perform a security review for this Waaris change."

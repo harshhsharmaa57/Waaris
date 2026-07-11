@@ -9,6 +9,7 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 - [x] Read the README specification completely before changes.
 - [x] Analyze the requested architecture and identify components.
 - [x] Create the initial living documentation set.
+- [x] Review relevant OpenAI skills and create the Waaris engineering workflow skill suite.
 
 ## Next: Phase 0 foundation
 
@@ -40,4 +41,4 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 
 ## Last updated
 
-2026-07-11 — initial task register created.
+2026-07-11 — skills selection and custom-skill task completed.

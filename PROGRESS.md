@@ -11,6 +11,7 @@ Planning baseline complete. The complete README specification was read before ch
 | 2026-07-11 | Read README specification completely | Full README reviewed before any repository write |
 | 2026-07-11 | Analyzed architecture and delivery dependencies | `PLAN.md`, `API_SPEC.md`, `DATABASE.md`, `DEPLOYMENT.md` |
 | 2026-07-11 | Established living governance and security baseline | `.context.md`, `TASKS.md`, `DECISIONS.md`, `SECURITY.md` |
+| 2026-07-11 | Reviewed OpenAI skills catalog and created selected Waaris workflow skills | `SKILLS.md`, `skills/` |
 
 ## In progress
 
@@ -24,4 +25,4 @@ None. Next work is Phase 0 foundation scaffolding.
 
 ## Last updated
 
-2026-07-11 — planning task completed; documentation synchronized.
+2026-07-11 — skills task completed; documentation synchronized.
