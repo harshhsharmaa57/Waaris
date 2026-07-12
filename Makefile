@@ -1,5 +1,5 @@
 SHELL := /bin/sh
-GO_PACKAGES := ./platform/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
+GO_PACKAGES := ./platform/... ./services/auth/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
 COMPOSE := docker compose
 
 .PHONY: bootstrap up down logs ps build test lint format format-check migrate-up migrate-down check

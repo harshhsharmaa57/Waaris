@@ -24,11 +24,11 @@ jobs:
         run: test -z "$(gofmt -l platform services)"
       - name: Test and vet
         run: |
-          go test ./platform/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
-          go vet ./platform/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
+          go test ./platform/... ./services/auth/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
+          go vet ./platform/... ./services/auth/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
       - name: Build services
         run: |
-          for service in enrollment heartbeat notification witness-coordination; do
+          for service in auth enrollment heartbeat notification witness-coordination; do
             go build ./services/$service/cmd/server
           done
 

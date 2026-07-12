@@ -51,6 +51,20 @@ services:
     environment: { HTTP_ADDR: ":8080" }
     ports: ["${ENROLLMENT_PORT:-8081}:8080"]
 
+  auth:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args: { SERVICE: auth }
+    environment:
+      HTTP_ADDR: ":8080"
+      DATABASE_URL: "postgres://${POSTGRES_USER:-waaris}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-waaris}?sslmode=disable"
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Set AUTH_JWT_SECRET in .env}
+    ports: ["${AUTH_PORT:-8080}:8080"]
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
   heartbeat:
     build:
       context: .
