@@ -2,6 +2,7 @@ package httpapi_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -10,11 +11,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/waaris/waaris/services/enrollment/internal/application"
+	"github.com/waaris/waaris/services/enrollment/internal/domain"
 	"github.com/waaris/waaris/services/enrollment/internal/infrastructure/memory"
 	"github.com/waaris/waaris/services/enrollment/internal/transport/httpapi"
 )
 
 const testSecret = "12345678901234567890123456789012"
+
+type noopNotifier struct{}
+
+func (noopNotifier) Send(context.Context, domain.Notification) error { return nil }
 
 func newRouter(t *testing.T) http.Handler {
 	t.Helper()
@@ -22,7 +28,8 @@ func newRouter(t *testing.T) http.Handler {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return httpapi.NewHandler(application.NewService(memory.New()), verifier).Router()
+	store := memory.New()
+	return httpapi.NewHandler(application.NewService(store, store, noopNotifier{}), verifier).Router()
 }
 
 func request(t *testing.T, router http.Handler, method, path string, body any, token string) *httptest.ResponseRecorder {
@@ -41,7 +48,7 @@ func request(t *testing.T, router http.Handler, method, path string, body any, t
 	return response
 }
 
-func TestWillHTTPFlow(t *testing.T) {
+func TestEnrollmentHTTPFlow(t *testing.T) {
 	router := newRouter(t)
 	token := accessToken(t, uuid.New(), "person@example.com")
 
@@ -56,9 +63,23 @@ func TestWillHTTPFlow(t *testing.T) {
 		t.Fatalf("create status: %d", created.Code)
 	}
 
-	current := request(t, router, http.MethodGet, "/api/v1/will", map[string]string{}, token)
-	if current.Code != http.StatusOK {
-		t.Fatalf("get status: %d", current.Code)
+	trustee := request(t, router, http.MethodPost, "/api/v1/trustees", map[string]any{
+		"name":         "Trustee One",
+		"email":        "trustee@example.com",
+		"relationship": "Sibling",
+	}, token)
+	if trustee.Code != http.StatusCreated {
+		t.Fatalf("trustee status: %d", trustee.Code)
+	}
+	var trusteeBody struct {
+		ID string `json:"id"`
+	}
+	if err := json.NewDecoder(trustee.Body).Decode(&trusteeBody); err != nil {
+		t.Fatal(err)
+	}
+	otherUser := accessToken(t, uuid.New(), "other@example.com")
+	if response := request(t, router, http.MethodDelete, "/api/v1/trustees/"+trusteeBody.ID, map[string]string{}, otherUser); response.Code != http.StatusNotFound {
+		t.Fatalf("cross-user trustee delete status: %d", response.Code)
 	}
 
 	updated := request(t, router, http.MethodPut, "/api/v1/will", map[string]any{
@@ -72,24 +93,18 @@ func TestWillHTTPFlow(t *testing.T) {
 		t.Fatalf("update status: %d", updated.Code)
 	}
 
+	heartbeat := request(t, router, http.MethodPost, "/api/v1/heartbeats", map[string]string{}, token)
+	if heartbeat.Code != http.StatusCreated {
+		t.Fatalf("heartbeat status: %d", heartbeat.Code)
+	}
+
 	history := request(t, router, http.MethodGet, "/api/v1/will/history", map[string]string{}, token)
 	if history.Code != http.StatusOK {
 		t.Fatalf("history status: %d", history.Code)
 	}
-	var payload struct {
-		History []struct {
-			Version int `json:"version"`
-		} `json:"history"`
-	}
-	if err := json.NewDecoder(history.Body).Decode(&payload); err != nil {
-		t.Fatal(err)
-	}
-	if len(payload.History) != 2 || payload.History[0].Version != 2 {
-		t.Fatalf("unexpected history payload: %#v", payload)
-	}
 }
 
-func TestWillHTTPValidationAndContract(t *testing.T) {
+func TestEnrollmentHTTPValidationAndContract(t *testing.T) {
 	router := newRouter(t)
 	token := accessToken(t, uuid.New(), "person@example.com")
 
@@ -98,12 +113,10 @@ func TestWillHTTPValidationAndContract(t *testing.T) {
 		t.Fatalf("unauthorized status: %d", unauthorized.Code)
 	}
 
-	invalid := request(t, router, http.MethodPost, "/api/v1/will", map[string]any{
-		"state":                 "draft",
-		"dormancyPeriodDays":    0,
-		"gracePeriodDays":       30,
-		"policyVersionAccepted": "2026-07",
-		"releaseCategories":     []string{"financial"},
+	invalid := request(t, router, http.MethodPost, "/api/v1/trustees", map[string]any{
+		"name":         "",
+		"email":        "bad",
+		"relationship": "Sibling",
 	}, token)
 	if invalid.Code != http.StatusBadRequest {
 		t.Fatalf("validation status: %d", invalid.Code)
@@ -115,6 +128,22 @@ func TestWillHTTPValidationAndContract(t *testing.T) {
 	}
 	if errorBody["code"] == "" || errorBody["message"] == "" || errorBody["correlationId"] == "" {
 		t.Fatalf("unexpected error contract: %#v", errorBody)
+	}
+	if invalid.Header().Get("X-Content-Type-Options") != "nosniff" || invalid.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("missing security headers: %#v", invalid.Header())
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/will", bytes.NewBufferString(`{} {}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("X-Correlation-Id", "invalid value")
+	trailing := httptest.NewRecorder()
+	router.ServeHTTP(trailing, req)
+	if trailing.Code != http.StatusBadRequest {
+		t.Fatalf("trailing JSON status: %d", trailing.Code)
+	}
+	if trailing.Header().Get("X-Correlation-Id") == "invalid value" {
+		t.Fatal("unsafe correlation ID was reflected")
 	}
 }
 

@@ -37,7 +37,14 @@ func (s *Service) Register(ctx context.Context, email, password, displayName str
 	if err != nil {
 		return Session{}, err
 	}
-	return s.newSession(ctx, user)
+	session, err := s.newSession(ctx, user)
+	if err != nil {
+		return Session{}, err
+	}
+	if err = s.store.AppendAuditEvent(ctx, user.ID, "user", user.Email, "registration", s.now()); err != nil {
+		return Session{}, err
+	}
+	return session, nil
 }
 
 func (s *Service) Login(ctx context.Context, email, password string) (Session, error) {
@@ -45,7 +52,14 @@ func (s *Service) Login(ctx context.Context, email, password string) (Session, e
 	if err != nil || comparePassword(user.PasswordHash, password) != nil {
 		return Session{}, domain.ErrInvalidCredentials
 	}
-	return s.newSession(ctx, user.User)
+	session, err := s.newSession(ctx, user.User)
+	if err != nil {
+		return Session{}, err
+	}
+	if err = s.store.AppendAuditEvent(ctx, user.ID, "user", user.Email, "login", s.now()); err != nil {
+		return Session{}, err
+	}
+	return session, nil
 }
 
 func (s *Service) Refresh(ctx context.Context, refreshToken string) (Session, error) {

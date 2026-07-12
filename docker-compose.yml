@@ -52,6 +52,9 @@ services:
       HTTP_ADDR: ":8080"
       DATABASE_URL: "postgres://${POSTGRES_USER:-waaris}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-waaris}?sslmode=disable"
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?Set AUTH_JWT_SECRET in .env}
+      SMTP_ADDR: "mailpit:1025"
+      SMTP_FROM: ${SMTP_FROM:-no-reply@waaris.local}
+      LIFECYCLE_TICK_INTERVAL: ${LIFECYCLE_TICK_INTERVAL:-1m}
     ports: ["${ENROLLMENT_PORT:-8081}:8080"]
     depends_on:
       migrations:

@@ -112,3 +112,7 @@ func (s *Store) RevokeRefreshToken(_ context.Context, hash string, _ time.Time) 
 	delete(s.refresh, hash)
 	return nil
 }
+
+func (s *Store) AppendAuditEvent(context.Context, uuid.UUID, string, string, string, time.Time) error {
+	return nil
+}
