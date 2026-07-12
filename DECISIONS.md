@@ -61,3 +61,15 @@ Decisions are append-only. Supersede an entry rather than silently changing it.
 - Status: accepted (2026-07-11)
 - Decision: EditorConfig/Git attributes, pre-commit hooks, Make targets, and GitHub Actions validate formatting, linting, tests, builds, Compose syntax, and image builds.
 - Consequence: contributors receive early feedback and CI is the source of release evidence. Docker builds still require a running daemon in local environments.
+
+## ADR-011 — Isolate account authentication in its own service
+
+- Status: accepted (2026-07-12)
+- Decision: `services/auth` owns user accounts, credential verification, session lifecycle, and self-profile APIs; enrollment and the other protocol services receive only authenticated identity context later.
+- Consequence: account passwords and session records do not leak into protocol-domain services, and future DID/VC identity work can be introduced behind an explicit boundary.
+
+## ADR-012 — Use bcrypt and rotated opaque refresh tokens
+
+- Status: accepted (2026-07-12)
+- Decision: password hashes use bcrypt cost 12. Access tokens are HS256 JWTs with a 15-minute default lifetime. Refresh tokens are 32-byte random opaque values, stored only as SHA-256 hashes, rotated atomically on use, and expire after 30 days by default.
+- Consequence: no password, raw refresh token, or token secret is persisted in application data or logs. A compromise of the refresh-token table does not permit direct session replay; a compromise of the JWT secret still requires incident rotation and invalidation procedures.

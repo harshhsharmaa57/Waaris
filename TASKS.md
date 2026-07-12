@@ -21,6 +21,16 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 - [x] Add `.env.example` files, Makefile commands, EditorConfig, Git attributes/ignore rules, and pre-commit configuration.
 - [x] Add GitHub Actions checks for Go formatting/tests/vet/build, web format/lint/test/build, and Compose/image validation.
 
+## Done: Milestone 2 — Authentication and User Management
+
+- [x] Implement isolated `auth` service with clean domain/application/infrastructure/HTTP boundaries.
+- [x] Add registration, login, access-token refresh rotation, and logout endpoints.
+- [x] Add bcrypt password hashing and HS256 JWT authentication middleware.
+- [x] Add authenticated self-profile retrieval, update, and deletion endpoints.
+- [x] Add `users` and hashed `refresh_tokens` migrations, repository implementations, request validation, and structured errors.
+- [x] Add application unit tests, HTTP integration-flow tests, and opt-in PostgreSQL integration test.
+- [x] Update local Compose, environment examples, Makefile/CI package checks, database, API, security, and decision documentation.
+
 ## Next: Phase 0 foundation
 
 - [ ] Establish repository layout and toolchain manifests for Go, TypeScript, React Native, Solidity, and Python components.
@@ -51,4 +61,4 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 
 ## Last updated
 
-2026-07-11 — Milestone 1 project foundation completed; remaining Phase 0 items retained.
+2026-07-12 — Milestone 2 completed; remaining Phase 0 items retained.

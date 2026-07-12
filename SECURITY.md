@@ -23,6 +23,8 @@ Waaris is safety-critical: false execution can expose private data or harm a liv
 - Make notification, registry, oracle, and telecom failures fail closed; retry idempotently and alert operators.
 - Apply secure defaults: deny unknown states, validate all inputs, protect admin endpoints, and use dependency/secret scanning in CI.
 - Conduct threat modeling and specialist review before each cryptographic, contract, identity, or external-integration milestone.
+- Hash passwords with bcrypt cost 12; never log, return, or persist a plaintext password.
+- Sign short-lived JWT access tokens with a 32-byte-or-longer secret from environment/secret management; rotate opaque refresh tokens and persist only their SHA-256 hashes.
 
 ## Threats and initial mitigations
 
@@ -36,6 +38,7 @@ Waaris is safety-critical: false execution can expose private data or harm a liv
 | Supply-chain compromise | Pin dependencies, SBOM, scanner gates, signed CI artifacts | CI enforcement |
 | Availability failure | Health checks, queues, idempotency, backups/restores, SLO alerts | Failure-injection and recovery drills |
 | Privacy re-identification | Defer publication; future DP budget plus review and privacy evaluation | Specialist-reviewed DP tests |
+| Credential stuffing/token replay | Bcrypt verification, generic login errors, short-lived access tokens, hashed and rotated refresh tokens | Unit/HTTP flow tests; future rate limiting and monitoring |
 
 ## Incident requirements
 
@@ -52,4 +55,4 @@ Waaris is safety-critical: false execution can expose private data or harm a liv
 
 ## Last updated
 
-2026-07-11 — initial baseline derived from README threat model.
+2026-07-12 — authentication credential/session controls added.

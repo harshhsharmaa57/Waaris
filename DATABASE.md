@@ -18,6 +18,8 @@ PostgreSQL stores only metadata required to coordinate a will. Redis stores ephe
 | `idempotency_keys` | `scope`, `key`, `request_hash`, `response_reference`, `expires_at` | Prevent duplicate state changes |
 | `outbox_events` | `id`, `aggregate_id`, `type`, `payload_reference`, `created_at`, `published_at` | Transactional outbox; payload must be redacted |
 | `consent_records` | `id`, `will_id`, `policy_version`, `consent_type`, `recorded_at`, `proof_hash` | Tracks category and publication opt-in |
+| `users` | `id`, lowercase `email`, `password_hash`, `display_name`, timestamps | Owned only by `services/auth`; no protocol, biometric, wallet, or DID data |
+| `refresh_tokens` | `id`, `user_id`, `token_hash`, `expires_at`, `revoked_at`, `created_at` | Stores SHA-256 hash of an opaque token; cascades on account deletion |
 
 ## Constraints and indexes
 
@@ -26,6 +28,7 @@ PostgreSQL stores only metadata required to coordinate a will. Redis stores ephe
 - Unique `(will_id, role, did_reference)` on participants and unique `(scope, key)` on idempotency keys.
 - Index state/time queries: `wills(state, updated_at)`, `heartbeats(will_id, occurred_at desc)`, `witness_requests(status, expires_at)`, `state_transitions(will_id, occurred_at desc)`.
 - Use row-level authorization in application/service layer initially; evaluate PostgreSQL RLS before multi-tenant production.
+- `users.email` is unique, lowercase, and bounded to 254 characters; display names are bounded to 100 characters. `refresh_tokens.token_hash` is unique and `refresh_tokens_active_user_idx` supports session lookup/expiry cleanup.
 
 ## Redis keys (indicative)
 
@@ -45,4 +48,4 @@ Use ordered, reviewed SQL migrations, one logical change per migration, reversib
 
 ## Last updated
 
-2026-07-11 — initial metadata-only schema design.
+2026-07-12 — authentication users and hashed refresh-token schema added in migration `000002`.

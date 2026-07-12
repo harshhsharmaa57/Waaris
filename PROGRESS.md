@@ -2,7 +2,7 @@
 
 ## Current status
 
-Milestone 1 — Project Foundation is complete. The repository now has a Go workspace, four health-only backend shells, a React web-dashboard shell, local Compose configuration, PostgreSQL migration scaffolding, development tooling, and CI. Business logic and advanced capabilities remain absent by design.
+Milestones 1 and 2 are complete. The repository now has the foundation scaffold plus an isolated authentication service with user registration/login, session rotation, protected self-profile CRUD, SQL persistence, and service/HTTP integration-flow tests.
 
 ## Completed
 
@@ -13,10 +13,11 @@ Milestone 1 — Project Foundation is complete. The repository now has a Go work
 | 2026-07-11 | Established living governance and security baseline | `.context.md`, `TASKS.md`, `DECISIONS.md`, `SECURITY.md` |
 | 2026-07-11 | Reviewed OpenAI skills catalog and created selected Waaris workflow skills | `SKILLS.md`, `skills/` |
 | 2026-07-11 | Completed Milestone 1 project foundation | Go workspace, `apps/web-dashboard`, `docker-compose.yml`, `infra/migrations`, `Makefile`, hooks, CI |
+| 2026-07-12 | Completed Milestone 2 authentication and user management | `services/auth`, authentication migrations, API/database/security specifications |
 
 ## In progress
 
-None. Next work is the remaining Phase 0 platform baseline: NATS, observability, deployment manifests/Terraform, mobile skeleton, and expanded test topology.
+None. Recommended next feature milestone is enrollment metadata and consent/version records, with the remaining Phase 0 platform baseline (NATS, observability, deployment manifests/Terraform, mobile skeleton, expanded test topology) planned alongside it.
 
 ## Blockers and risks
 
@@ -27,4 +28,4 @@ None. Next work is the remaining Phase 0 platform baseline: NATS, observability,
 
 ## Last updated
 
-2026-07-11 — Milestone 1 complete; documentation synchronized.
+2026-07-12 — Milestone 2 complete; documentation synchronized.
