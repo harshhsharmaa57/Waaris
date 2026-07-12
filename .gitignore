@@ -6,4 +6,5 @@ dist/
 coverage/
 *.coverprofile
 bin/
+*.exe
 .DS_Store

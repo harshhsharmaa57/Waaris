@@ -12,7 +12,7 @@
 
 ## Initial topology
 
-1. Milestone 1 Docker Compose runs PostgreSQL 17, Redis 7, Mailpit, a one-shot SQL migration runner, four health-only Go service containers, and the static web dashboard. NATS and observability join in the remaining Phase 0 work.
+1. Docker Compose now runs PostgreSQL 17, Redis 7, Mailpit, a one-shot SQL migration runner, the DB-backed auth and enrollment services, the remaining Go service shells, and the static web dashboard. Enrollment and auth both require the shared JWT secret locally. NATS and observability join in the remaining Phase 0 work.
 2. Kubernetes deploys independently scalable Go services with readiness/liveness probes, resource requests/limits, network policies, and rolling-release controls.
 3. Terraform provisions environment-scoped network, managed data services, Kubernetes, monitoring, IAM, and secrets integration. State must be encrypted and access controlled.
 4. HashiCorp Vault (or an approved equivalent) holds operational service secrets only; it must never hold user vault keys or trustee shares.
@@ -52,4 +52,4 @@ Production: all applicable gates plus external security assessment, disaster-rec
 
 ## Last updated
 
-2026-07-11 — Milestone 1 local topology and migration runner added; no shared environments provisioned.
+2026-07-12 — Milestone 3 added DB-backed enrollment runtime requirements to the local topology.

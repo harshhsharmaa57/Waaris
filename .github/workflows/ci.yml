@@ -24,11 +24,11 @@ jobs:
         run: test -z "$(gofmt -l platform services)"
       - name: Test and vet
         run: |
-          go test ./platform/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
-          go vet ./platform/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
+          go test ./platform/... ./services/auth/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
+          go vet ./platform/... ./services/auth/... ./services/enrollment/... ./services/heartbeat/... ./services/notification/... ./services/witness-coordination/...
       - name: Build services
         run: |
-          for service in enrollment heartbeat notification witness-coordination; do
+          for service in auth enrollment heartbeat notification witness-coordination; do
             go build ./services/$service/cmd/server
           done
 
@@ -54,9 +54,12 @@ jobs:
   containers:
     name: Container build and compose validation
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-only
+      AUTH_JWT_SECRET: 12345678901234567890123456789012
     steps:
       - uses: actions/checkout@v4
       - name: Validate Compose
-        run: POSTGRES_PASSWORD=ci-only docker compose config --quiet
+        run: docker compose config --quiet
       - name: Build images
-        run: POSTGRES_PASSWORD=ci-only docker compose build
+        run: docker compose build
