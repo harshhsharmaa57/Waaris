@@ -91,3 +91,9 @@ Decisions are append-only. Supersede an entry rather than silently changing it.
 - Status: accepted (2026-07-12)
 - Decision: `DELETE /api/v1/will` marks the current will deleted instead of removing historical rows. `POST` and `PUT` both require `policyVersionAccepted` and record a fresh consent event tied to the newly created will version.
 - Consequence: users can recreate a new active will later without erasing historical version/consent evidence, while every material metadata change remains associated with an explicit accepted policy version. Account deletion still cascades through the user foreign key and removes the user's will data.
+
+## ADR-016 — Keep Compose secret interpolation strict and satisfy it in CI with placeholders
+
+- Status: accepted (2026-07-13)
+- Decision: retain `:?` required-variable checks in `docker-compose.yml` for secrets such as `POSTGRES_PASSWORD` and `AUTH_JWT_SECRET`. GitHub Actions supplies non-secret placeholder values only within the CI container-validation job so `docker compose config --quiet` and `docker compose build` can evaluate the file.
+- Consequence: local development and production still fail closed when required secrets are missing, while CI can validate Compose syntax and image definitions without access to real secrets or insecure defaults in the committed Compose file.

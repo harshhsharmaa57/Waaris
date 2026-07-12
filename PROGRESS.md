@@ -15,6 +15,7 @@ Milestones 1, 2, and 3 are complete. The repository now has the foundation scaff
 | 2026-07-11 | Completed Milestone 1 project foundation | Go workspace, `apps/web-dashboard`, `docker-compose.yml`, `infra/migrations`, `Makefile`, hooks, CI |
 | 2026-07-12 | Completed Milestone 2 authentication and user management | `services/auth`, authentication migrations, API/database/security specifications |
 | 2026-07-12 | Completed Milestone 3 Digital Will enrollment | `services/enrollment`, migration `000003`, enrollment API/database/decision specifications |
+| 2026-07-13 | Fixed GitHub Actions Compose validation for required secret interpolation | `.github/workflows/ci.yml`, `.context.md`, `DECISIONS.md` |
 
 ## In progress
 
@@ -30,4 +31,4 @@ None. Recommended next feature milestone is heartbeat and liveness verification,
 
 ## Last updated
 
-2026-07-12 — Milestone 3 complete; documentation synchronized.
+2026-07-13 — CI workflow Compose validation fixed; documentation synchronized.

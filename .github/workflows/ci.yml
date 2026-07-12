@@ -54,9 +54,12 @@ jobs:
   containers:
     name: Container build and compose validation
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-only
+      AUTH_JWT_SECRET: 12345678901234567890123456789012
     steps:
       - uses: actions/checkout@v4
       - name: Validate Compose
-        run: POSTGRES_PASSWORD=ci-only docker compose config --quiet
+        run: docker compose config --quiet
       - name: Build images
-        run: POSTGRES_PASSWORD=ci-only docker compose build
+        run: docker compose build
