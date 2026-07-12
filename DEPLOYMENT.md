@@ -12,7 +12,7 @@
 
 ## Initial topology
 
-1. Docker Compose now runs PostgreSQL 17, Redis 7, Mailpit, a one-shot SQL migration runner, the DB-backed auth and enrollment services, the remaining Go service shells, and the static web dashboard. Enrollment and auth both require the shared JWT secret locally. NATS and observability join in the remaining Phase 0 work.
+1. Docker Compose runs PostgreSQL 17, Redis 7, Mailpit, a one-shot SQL migration runner, DB-backed auth/enrollment services, the remaining Go service shells, and the static web dashboard. Enrollment requires `SMTP_ADDR` (set to `mailpit:1025` in Compose), `SMTP_FROM`, and `LIFECYCLE_TICK_INTERVAL`; auth and enrollment both require the shared JWT secret locally.
 2. Kubernetes deploys independently scalable Go services with readiness/liveness probes, resource requests/limits, network policies, and rolling-release controls.
 3. Terraform provisions environment-scoped network, managed data services, Kubernetes, monitoring, IAM, and secrets integration. State must be encrypted and access controlled.
 4. HashiCorp Vault (or an approved equivalent) holds operational service secrets only; it must never hold user vault keys or trustee shares.
@@ -32,6 +32,8 @@
 - Trace cross-service flows with redacted attributes.
 - Define SLOs before public use, especially for heartbeat ingestion, delayed-event processing, and liveness-override handling.
 - Alert on missed job schedules, transition anomalies, signature-verification failures, queue growth, error rate, and unauthorized access attempts.
+- Auth and enrollment expose `/healthz` for process liveness and `/readyz` for PostgreSQL dependency readiness. Servers use 15-second read, 30-second write, 60-second idle, and 16 KiB header limits.
+- Local notification dispatch uses Mailpit only. A failed email remains recorded as `failed`; production requires retry/dead-letter handling and provider delivery telemetry before launch.
 
 ## Backup, recovery, and safe failure
 
@@ -50,6 +52,15 @@ Cryptography/chain: independent reviews/audits, testnet rehearsal, incident dril
 
 Production: all applicable gates plus external security assessment, disaster-recovery exercise, operational ownership, and legal counsel approval.
 
+## Required production configuration
+
+- Terminate TLS at a trusted ingress and do not expose PostgreSQL, Redis, Mailpit, or service debug endpoints publicly.
+- Store `DATABASE_URL` and `AUTH_JWT_SECRET` in managed secrets; keep the JWT secret at least 32 bytes and rotate it through a documented incident procedure.
+- Replace Mailpit with an authenticated TLS SMTP/API provider and set `SMTP_ADDR`/`SMTP_FROM` through managed configuration.
+- Set ingress rate limits for authentication and state-changing routes. Application-level distributed rate limiting is not implemented.
+- Run the lifecycle worker in exactly one leader or introduce a durable distributed scheduler before scaling enrollment horizontally; the current database transactions prevent duplicate pending requests but do not provide job observability.
+- Provision PostgreSQL backups, restore tests, least-privilege roles, audit-retention controls, metrics, traces, and alerting before any public deployment.
+
 ## Last updated
 
-2026-07-12 — Milestone 3 added DB-backed enrollment runtime requirements to the local topology.
+2026-07-13 — local MVP lifecycle, Mailpit queueing, readiness, timeout, and production release requirements documented.

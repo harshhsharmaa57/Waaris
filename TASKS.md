@@ -41,6 +41,17 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 - [x] Add application tests, HTTP integration/contract tests, and opt-in PostgreSQL migration/repository integration tests.
 - [x] Update local Compose plus the affected context, plan, progress, decision, database, API, deployment, and security documentation.
 
+## Done: Milestone 4 — Local MVP Workflow and Hardening
+
+- [x] Add trustee CRUD with owner scoping, duplicate prevention, self-trustee prevention, and lifecycle edit locks.
+- [x] Add persisted authenticated heartbeats, liveness status/history, and lifecycle worker transitions through `ready_for_execution` metadata only.
+- [x] Add majority trustee verification requests and append-only responses for approve, reject, and abstain.
+- [x] Add durable PostgreSQL notification queue/history and bounded Mailpit SMTP delivery for dormancy, verification, grace, and recovery events.
+- [x] Add append-only audit events for enrollment workflow plus registration/login.
+- [x] Add HTTP hardening: strict JSON parsing, bounded bodies/header/server timeouts, readiness checks, safe response headers, panic containment, and redacted request metadata logs.
+- [x] Add state-machine, negative-path, contract, migration, repository rollback, and full workspace validation coverage.
+- [x] Add CI Go vulnerability scanning and disposable PostgreSQL migration/repository integration checks.
+
 ## Remaining Phase 0 foundation
 
 - [ ] Establish repository layout and toolchain manifests for Go, TypeScript, React Native, Solidity, and Python components.
@@ -56,11 +67,11 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 ## Next: Phase 1 safe MVP
 
 - [x] Implement enrollment metadata and consent/version records.
-- [ ] Implement signed heartbeat verification and replay protection.
-- [ ] Implement notification/escalation workflow with test adapters.
-- [ ] Implement non-ZK single-witness confirmation and grace-period transitions.
-- [ ] Implement liveness override and audited state reset.
-- [ ] Implement minimal enrollment/check-in and trustee portal user journeys.
+- [x] Implement local authenticated heartbeat and lifecycle workflow; signed device proof and replay protection are deferred.
+- [x] Implement local Mailpit notification workflow with test adapter boundaries.
+- [x] Implement local trustee confirmation and grace-period transitions.
+- [x] Implement liveness override and audited state reset.
+- [ ] Implement interactive enrollment/check-in and trustee portal user journeys.
 
 ## Explicitly deferred
 
@@ -71,4 +82,4 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 
 ## Last updated
 
-2026-07-12 — Milestone 3 completed; heartbeat is the next recommended feature milestone.
+2026-07-13 — local MVP workflow and hardening completed; deployment/operational readiness is next.

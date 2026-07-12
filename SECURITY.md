@@ -26,6 +26,9 @@ Waaris is safety-critical: false execution can expose private data or harm a liv
 - Hash passwords with bcrypt cost 12; never log, return, or persist a plaintext password.
 - Sign short-lived JWT access tokens with a 32-byte-or-longer secret from environment/secret management; rotate opaque refresh tokens and persist only their SHA-256 hashes.
 - Record Digital Will updates as append-only versions plus append-only consent events; never overwrite version history or store sensitive asset payloads in enrollment tables.
+- Lock policy/trustee changes outside `active`, reject self-trustee configuration, and require a majority of configured trustees before grace period metadata can begin.
+- Treat `ready_for_execution` as reversible metadata while no execution exists; authenticated liveness always returns the local MVP to `active`.
+- Bound HTTP headers, request bodies, JSON parsing, SMTP I/O, and server read/write/idle durations. Log correlation ID, method, path, status, and duration only.
 
 ## Threats and initial mitigations
 
@@ -41,6 +44,9 @@ Waaris is safety-critical: false execution can expose private data or harm a liv
 | Availability failure | Health checks, queues, idempotency, backups/restores, SLO alerts | Failure-injection and recovery drills |
 | Privacy re-identification | Defer publication; future DP budget plus review and privacy evaluation | Specialist-reviewed DP tests |
 | Credential stuffing/token replay | Bcrypt verification, generic login errors, short-lived access tokens, hashed and rotated refresh tokens | Unit/HTTP flow tests; future rate limiting and monitoring |
+| Owner self-approval or mid-workflow policy manipulation | Reject owner email as trustee; lock authoring/contact changes once lifecycle leaves `active` | Unit and HTTP authorization/state tests |
+| SMTP dependency stall | Durable queue status plus bounded TCP/SMTP deadlines | Notification adapter tests; Mailpit integration rehearsal |
+| Multi-replica lifecycle contention | PostgreSQL row transactions and unique pending request index | Repository integration test; production load test pending |
 
 ## Incident requirements
 
@@ -55,6 +61,14 @@ Waaris is safety-critical: false execution can expose private data or harm a liv
 - Before contracts or cryptography: independent expert review and test vectors.
 - Before production: external penetration test, smart-contract audit where applicable, legal counsel approval, and incident tabletop exercise.
 
+## Residual MVP risks
+
+- JWTs use one shared HS256 secret across auth and enrollment. Rotate through managed secret storage on incident; move to asymmetric verification or introspection before multi-environment public launch.
+- No distributed rate limiting, WAF, account recovery/MFA, or verified trustee identity exists. Enforce rate limits at ingress now and add identity/abuse controls only under a separately approved specification.
+- Mailpit SMTP is local-development only. A production relay must use TLS, authenticated credentials, retry/dead-letter handling, delivery monitoring, and privacy review.
+- Audit rows are append-only in application code, not protected by a database role/trigger policy. Production DB permissions must deny updates/deletes to the application runtime role except approved retention procedures.
+- TLS, ingress network policy, backups/restore drills, metrics, tracing, and alerting are not included in the repository yet and remain release gates.
+
 ## Last updated
 
-2026-07-12 — Digital Will enrollment history and consent controls added.
+2026-07-13 — MVP authorization, transport, lifecycle, SMTP, and residual-risk controls reviewed.
