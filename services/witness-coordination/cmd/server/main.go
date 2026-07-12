@@ -18,7 +18,15 @@ const serviceName = "witness-coordination"
 func main() {
 	mux := http.NewServeMux()
 	health.NewHandler(serviceName).Register(mux)
-	server := &http.Server{Addr: address(), Handler: mux, ReadHeaderTimeout: 5 * time.Second}
+	server := &http.Server{
+		Addr:              address(),
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    16 << 10,
+	}
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("server stopped unexpectedly", "service", serviceName, "error", err)

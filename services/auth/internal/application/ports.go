@@ -17,4 +17,5 @@ type Store interface {
 	CreateRefreshToken(context.Context, domain.RefreshToken) error
 	RotateRefreshToken(context.Context, string, uuid.UUID, string, time.Time, time.Time) (domain.User, error)
 	RevokeRefreshToken(context.Context, string, time.Time) error
+	AppendAuditEvent(context.Context, uuid.UUID, string, string, string, time.Time) error
 }

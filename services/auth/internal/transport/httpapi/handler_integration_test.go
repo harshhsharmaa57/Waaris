@@ -78,4 +78,14 @@ func TestAuthenticationValidationAndMiddleware(t *testing.T) {
 	if unauthorized.Code != http.StatusUnauthorized {
 		t.Fatalf("middleware status: %d", unauthorized.Code)
 	}
+	req := httptest.NewRequest(http.MethodPost, "/v1/auth/login", bytes.NewBufferString(`{} {}`))
+	req.Header.Set("Content-Type", "application/json")
+	trailing := httptest.NewRecorder()
+	router.ServeHTTP(trailing, req)
+	if trailing.Code != http.StatusBadRequest {
+		t.Fatalf("trailing JSON status: %d", trailing.Code)
+	}
+	if trailing.Header().Get("X-Content-Type-Options") != "nosniff" {
+		t.Fatalf("missing security header: %#v", trailing.Header())
+	}
 }

@@ -97,3 +97,33 @@ Decisions are append-only. Supersede an entry rather than silently changing it.
 - Status: accepted (2026-07-13)
 - Decision: retain `:?` required-variable checks in `docker-compose.yml` for secrets such as `POSTGRES_PASSWORD` and `AUTH_JWT_SECRET`. GitHub Actions supplies non-secret placeholder values only within the CI container-validation job so `docker compose config --quiet` and `docker compose build` can evaluate the file.
 - Consequence: local development and production still fail closed when required secrets are missing, while CI can validate Compose syntax and image definitions without access to real secrets or insecure defaults in the committed Compose file.
+
+## ADR-017 — Keep the local MVP workflow in the enrollment aggregate
+
+- Status: accepted (2026-07-13)
+- Decision: trustees, heartbeat metadata, lifecycle transitions, local notification queueing, verification requests, and audit events remain behind `services/enrollment` repository/application boundaries for the MVP. Existing heartbeat, notification, and witness-coordination service shells are not activated as independent distributed workflows yet.
+- Consequence: local end-to-end behavior is transactional and testable without premature distributed-saga/event-bus complexity. Service extraction requires an explicit outbox, idempotency, replay, and observability design.
+
+## ADR-018 — Use majority trustee approval with immutable response history
+
+- Status: accepted (2026-07-13)
+- Decision: a verification request snapshots a required threshold of `floor(trustee_count / 2) + 1`. Each trustee response is appended; only each trustee's most recent response contributes to the current count. The request advances only from `pending_verification` to `grace_period` and never executes assets.
+- Consequence: the MVP has a deterministic, reversible local verification rule without implementing threshold cryptography. Trustee identity remains authenticated account-email matching and requires stronger identity proofing before a public launch.
+
+## ADR-019 — Treat configuration as immutable during verification
+
+- Status: accepted (2026-07-13)
+- Decision: policy and trustee contact changes are allowed only while lifecycle state is `active`; a will owner cannot add themself as a trustee. Any heartbeat restores `active` from a non-active metadata state because execution is absent.
+- Consequence: an account compromise cannot rewrite trustee policy mid-verification or self-approve a verification request. This favors liveness/reversibility while the system has no irreversible settlement.
+
+## ADR-020 — Queue notification records durably and use Mailpit only for local delivery
+
+- Status: accepted (2026-07-13)
+- Decision: notifications are inserted into PostgreSQL before delivery, dispatched through an application notifier interface, and recorded as `queued`, `sent`, or `failed`. The shipped notifier speaks unauthenticated SMTP to local Mailpit with bounded network I/O.
+- Consequence: local workflow tests have observable delivery history without a production provider. Production must replace Mailpit with an authenticated, TLS-configured provider plus retry/dead-letter policy.
+
+## ADR-021 — Harden API transport and validate database behavior in CI
+
+- Status: accepted (2026-07-13)
+- Decision: auth and enrollment APIs use bounded bodies, single-object JSON parsing, normalized correlation IDs, safe response headers, panic containment, redacted request metadata logs, dependency-aware readiness checks, and explicit HTTP timeouts. CI runs `govulncheck` and disposable PostgreSQL migration/repository tests.
+- Consequence: common malformed-request, availability, and dependency-regression paths fail predictably. Distributed rate limiting, TLS termination, ingress controls, and monitoring remain deployment responsibilities.

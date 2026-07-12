@@ -27,18 +27,18 @@ This is the executable roadmap for the README specification. It intentionally st
 
 Exit criteria: a clean checkout can run quality checks and local dependencies; services can expose health endpoints; CI reports are actionable.
 
-Status on 2026-07-12: the monorepo baseline, auth service, and Digital Will enrollment service are implemented. Remaining Phase 0 work is focused on NATS, observability, deployment manifests/Terraform, mobile skeletons, and broader scanning/release automation.
+Status on 2026-07-13: the local MVP workflow and hardening baseline are implemented. Remaining Phase 0 work is focused on NATS, observability, deployment manifests/Terraform, mobile skeletons, distributed abuse controls, and broader release automation.
 
 ### Phase 1 — Safe local MVP
 
 1. Implement enrollment metadata: current milestone delivered the safe subset only: single-owner Digital Will metadata, timing policy, draft/published state, release categories, version history, and consent records. Trustee/witness references, nominees, and any sensitive-content references remain deferred.
-2. Implement signed heartbeat intake with replay protection, server-side verification, Redis-assisted liveness tracking, and immutable-but-redacted audit events.
-3. Implement notification scheduling and escalation; make every delivery channel mockable.
-4. Implement a local, non-ZK single-witness confirmation workflow that can only advance to a grace period.
-5. Implement liveness override and state-transition guards: `Active → PendingVerification → GracePeriod → Active`; do not implement execution yet.
-6. Build a minimal web portal and mobile check-in/enrollment path against the APIs.
+2. Implement authenticated heartbeat intake, persisted liveness state, lifecycle evaluation, and immutable redacted audit events. Completed for the local MVP; signed device proofs and Redis acceleration remain deferred.
+3. Implement notification scheduling and escalation. Completed for local Mailpit email with a durable PostgreSQL queue; production providers remain deferred.
+4. Implement a local, non-ZK trustee confirmation workflow that can only advance to a grace period. Completed with majority approval and append-only responses.
+5. Implement liveness override and state-transition guards: `Active → PendingVerification → GracePeriod → ReadyForExecution`; no execution exists. Completed.
+6. Build a minimal web portal and mobile check-in/enrollment path against the APIs. API journey is complete; interactive dashboard/mobile workflows remain a Phase 2 delivery.
 
-Exit criteria: full local demo exercises enrollment, missed heartbeat, witness request, grace period, and liveness reset; no plaintext vault data or keys are handled.
+Exit criteria: full local API demo exercises enrollment, trustee setup, missed heartbeat, verification, grace period, ready metadata, and liveness reset; no plaintext vault data or keys are handled.
 
 ### Phase 2 — Product hardening and accessibility
 
@@ -84,4 +84,4 @@ Foundation → enrollment/heartbeat → notifications/witness grace flow → cli
 
 ## Last updated
 
-2026-07-12 — foundation, authentication, and Digital Will enrollment documented; heartbeat is the next milestone.
+2026-07-13 — local MVP workflow and hardening baseline completed; production operational controls are next.

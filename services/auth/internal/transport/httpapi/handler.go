@@ -1,8 +1,10 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/mail"
 	"strings"
@@ -14,16 +16,31 @@ import (
 
 const maxBodyBytes = 1 << 20
 
-type Handler struct{ service *application.Service }
+type Handler struct {
+	service *application.Service
+	ready   func(context.Context) error
+}
 
-func NewHandler(service *application.Service) *Handler { return &Handler{service: service} }
+func NewHandler(service *application.Service) *Handler { return NewHandlerWithReadiness(service, nil) }
+
+func NewHandlerWithReadiness(service *application.Service, ready func(context.Context) error) *Handler {
+	return &Handler{service: service, ready: ready}
+}
 
 func (h *Handler) Router() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "auth"})
 	})
-	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
+		if h.ready != nil {
+			ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+			defer cancel()
+			if err := h.ready(ctx); err != nil {
+				writeError(w, r, http.StatusServiceUnavailable, "not_ready", "service dependencies are unavailable")
+				return
+			}
+		}
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "auth"})
 	})
 	mux.HandleFunc("POST /v1/auth/register", h.register)
@@ -33,7 +50,7 @@ func (h *Handler) Router() http.Handler {
 	mux.Handle("GET /v1/users/me", h.requireAuth(http.HandlerFunc(h.profile)))
 	mux.Handle("PATCH /v1/users/me", h.requireAuth(http.HandlerFunc(h.updateProfile)))
 	mux.Handle("DELETE /v1/users/me", h.requireAuth(http.HandlerFunc(h.deleteProfile)))
-	return withRequestID(mux)
+	return withRequestID(withHTTPProtection(mux))
 }
 
 type credentialsRequest struct {
@@ -211,6 +228,10 @@ func decode(w http.ResponseWriter, r *http.Request, destination any) bool {
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(destination); err != nil {
 		writeError(w, r, http.StatusBadRequest, "invalid_request", "request body must be valid JSON")
+		return false
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		writeError(w, r, http.StatusBadRequest, "invalid_request", "request body must contain one JSON object")
 		return false
 	}
 	return true

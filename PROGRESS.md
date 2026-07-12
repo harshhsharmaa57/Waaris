@@ -2,7 +2,7 @@
 
 ## Current status
 
-Milestones 1, 2, and 3 are complete. The repository now has the foundation scaffold, an isolated authentication service, and a database-backed enrollment service for Digital Will metadata with authenticated CRUD, version history, consent records, and SQL persistence.
+The local MVP and its hardening baseline are complete. The repository now provides an authenticated end-to-end Digital Will workflow with trustee verification, liveness recovery, notification/audit history, transactional persistence, and CI validation.
 
 ## Completed
 
@@ -16,10 +16,11 @@ Milestones 1, 2, and 3 are complete. The repository now has the foundation scaff
 | 2026-07-12 | Completed Milestone 2 authentication and user management | `services/auth`, authentication migrations, API/database/security specifications |
 | 2026-07-12 | Completed Milestone 3 Digital Will enrollment | `services/enrollment`, migration `000003`, enrollment API/database/decision specifications |
 | 2026-07-13 | Fixed GitHub Actions Compose validation for required secret interpolation | `.github/workflows/ci.yml`, `.context.md`, `DECISIONS.md` |
+| 2026-07-13 | Completed local MVP workflow and hardening | lifecycle/notification/audit migrations, auth/enrollment service hardening, PostgreSQL CI validation |
 
 ## In progress
 
-None. Recommended next feature milestone is heartbeat and liveness verification, with the remaining Phase 0 platform baseline (NATS, observability, deployment manifests/Terraform, mobile skeleton, expanded scanning/test topology) still pending.
+None. Recommended next work is operational v1.0 readiness: managed secrets, TLS ingress, distributed rate limits, observability, backups/restore drills, and external review. No new product feature is required for the local MVP.
 
 ## Blockers and risks
 
@@ -28,7 +29,8 @@ None. Recommended next feature milestone is heartbeat and liveness verification,
 - Advanced cryptography and DP require specialist review and must not start before foundational exit criteria are met.
 - Docker Compose images could not be built locally because the Docker daemon is not running; Compose syntax was validated and all Go/web builds passed independently.
 - PostgreSQL repository and migration validation tests for enrollment are opt-in and require a dedicated disposable database URL via `ENROLLMENT_INTEGRATION_DATABASE_URL`.
+- The MVP has no distributed rate limit, production mail provider, ingress/TLS configuration, managed secret integration, metrics/tracing, or external penetration test. These are release gates, not local-workflow blockers.
 
 ## Last updated
 
-2026-07-13 — CI workflow Compose validation fixed; documentation synchronized.
+2026-07-13 — local MVP workflow and hardening baseline completed; documentation synchronized.

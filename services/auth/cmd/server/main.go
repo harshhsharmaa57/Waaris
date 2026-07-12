@@ -38,7 +38,15 @@ func main() {
 		os.Exit(1)
 	}
 	service := application.NewService(postgres.New(pool), tokens, config.refreshTTL)
-	server := &http.Server{Addr: config.httpAddr, Handler: httpapi.NewHandler(service).Router(), ReadHeaderTimeout: 5 * time.Second}
+	server := &http.Server{
+		Addr:              config.httpAddr,
+		Handler:           httpapi.NewHandlerWithReadiness(service, pool.Ping).Router(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    16 << 10,
+	}
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("server stopped unexpectedly", "error", err)

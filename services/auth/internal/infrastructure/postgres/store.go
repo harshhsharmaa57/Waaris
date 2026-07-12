@@ -87,6 +87,14 @@ func (s *Store) RevokeRefreshToken(ctx context.Context, hash string, now time.Ti
 	return err
 }
 
+func (s *Store) AppendAuditEvent(ctx context.Context, userID uuid.UUID, actorType, actorID, eventType string, now time.Time) error {
+	_, err := s.pool.Exec(ctx, `
+		INSERT INTO waaris.audit_events (id, user_id, will_id, actor_type, actor_id, event_type, correlation_id, details, occurred_at)
+		VALUES ($1, $2, NULL, $3, $4, $5, '', '{}'::jsonb, $6)
+	`, uuid.New(), userID, actorType, actorID, eventType, now)
+	return err
+}
+
 func mapNotFound(err error) error {
 	if errors.Is(err, pgx.ErrNoRows) {
 		return domain.ErrNotFound

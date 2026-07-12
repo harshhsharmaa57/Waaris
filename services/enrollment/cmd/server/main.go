@@ -41,11 +41,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	service := application.NewService(postgres.New(pool))
+	repository := postgres.New(pool)
+	service := application.NewService(repository, repository, application.NewSMTPNotifier(config.smtpAddress, config.smtpFrom))
 	server := &http.Server{
 		Addr:              config.httpAddr,
-		Handler:           httpapi.NewHandler(service, tokens).Router(),
+		Handler:           httpapi.NewHandlerWithReadiness(service, tokens, pool.Ping).Router(),
 		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    16 << 10,
 	}
 
 	go func() {
@@ -54,6 +59,7 @@ func main() {
 			os.Exit(1)
 		}
 	}()
+	go runLifecycleWorker(service, config.lifecycleTick)
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
@@ -68,18 +74,28 @@ func main() {
 }
 
 type config struct {
-	httpAddr    string
-	databaseURL string
-	jwtSecret   string
-	jwtIssuer   string
+	httpAddr      string
+	databaseURL   string
+	jwtSecret     string
+	jwtIssuer     string
+	smtpAddress   string
+	smtpFrom      string
+	lifecycleTick time.Duration
 }
 
 func loadConfig() (config, error) {
+	lifecycleTick, err := duration("LIFECYCLE_TICK_INTERVAL", time.Minute)
+	if err != nil {
+		return config{}, err
+	}
 	result := config{
-		httpAddr:    value("HTTP_ADDR", ":8080"),
-		databaseURL: os.Getenv("DATABASE_URL"),
-		jwtSecret:   os.Getenv("AUTH_JWT_SECRET"),
-		jwtIssuer:   value("AUTH_ACCESS_TOKEN_ISSUER", "waaris-auth"),
+		httpAddr:      value("HTTP_ADDR", ":8080"),
+		databaseURL:   os.Getenv("DATABASE_URL"),
+		jwtSecret:     os.Getenv("AUTH_JWT_SECRET"),
+		jwtIssuer:     value("AUTH_ACCESS_TOKEN_ISSUER", "waaris-auth"),
+		smtpAddress:   value("SMTP_ADDR", "mailpit:1025"),
+		smtpFrom:      value("SMTP_FROM", "no-reply@waaris.local"),
+		lifecycleTick: lifecycleTick,
 	}
 
 	if result.databaseURL == "" {
@@ -97,4 +113,29 @@ func value(key, fallback string) string {
 		return result
 	}
 	return fallback
+}
+
+func duration(key string, fallback time.Duration) (time.Duration, error) {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback, nil
+	}
+	parsed, err := time.ParseDuration(value)
+	if err != nil || parsed <= 0 {
+		return 0, errors.New(key + " must be a positive duration")
+	}
+	return parsed, nil
+}
+
+func runLifecycleWorker(service *application.Service, interval time.Duration) {
+	if err := service.ProcessLifecycleTick(context.Background()); err != nil {
+		slog.Error("initial lifecycle tick failed", "error", err)
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for range ticker.C {
+		if err := service.ProcessLifecycleTick(context.Background()); err != nil {
+			slog.Error("lifecycle tick failed", "error", err)
+		}
+	}
 }
