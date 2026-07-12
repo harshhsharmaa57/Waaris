@@ -8,27 +8,38 @@ PostgreSQL stores only metadata required to coordinate a will. Redis stores ephe
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `wills` | `id`, `public_key_commitment`, `state`, `dormancy_days`, `grace_days`, `policy_version`, timestamps | One row per data principal's will metadata |
-| `will_categories` | `will_id`, `category`, `enabled` | Enum: financial/private/community_shareable; no content pointers initially |
-| `participants` | `id`, `will_id`, `role`, `did_reference`, `eligibility_status`, `created_at` | Role: trustee/witness/nominee; pseudonymous references where possible |
-| `witness_requests` | `id`, `will_id`, `status`, `requested_at`, `expires_at` | Delivery identifiers belong in a protected adapter store, not this table |
-| `attestations` | `id`, `will_id`, `participant_id`, `channel`, `proof_commitment`, `attested_at`, `status` | Store commitment/reference, not raw ZK proof in later phases |
-| `heartbeats` | `id`, `will_id`, `signed_payload_hash`, `occurred_at`, `verified_at`, `key_version` | Retain minimal audit metadata only |
-| `state_transitions` | `id`, `will_id`, `from_state`, `to_state`, `reason_code`, `actor_type`, `correlation_id`, `occurred_at` | Append-only audit trail |
-| `idempotency_keys` | `scope`, `key`, `request_hash`, `response_reference`, `expires_at` | Prevent duplicate state changes |
-| `outbox_events` | `id`, `aggregate_id`, `type`, `payload_reference`, `created_at`, `published_at` | Transactional outbox; payload must be redacted |
-| `consent_records` | `id`, `will_id`, `policy_version`, `consent_type`, `recorded_at`, `proof_hash` | Tracks category and publication opt-in |
 | `users` | `id`, lowercase `email`, `password_hash`, `display_name`, timestamps | Owned only by `services/auth`; no protocol, biometric, wallet, or DID data |
 | `refresh_tokens` | `id`, `user_id`, `token_hash`, `expires_at`, `revoked_at`, `created_at` | Stores SHA-256 hash of an opaque token; cascades on account deletion |
+| `digital_wills` | `id`, `user_id`, `status`, `current_version`, `dormancy_days`, `grace_days`, `policy_version`, `consent_accepted_at`, timestamps, `deleted_at` | One current active will aggregate per user; soft delete allows later recreation |
+| `will_release_preferences` | `will_id`, `category`, `created_at` | Current normalized release categories for the active will |
+| `will_versions` | `id`, `will_id`, `user_id`, `version`, `status`, timing policy, `policy_version`, `consent_accepted_at`, `created_at` | Immutable snapshot of every create/update |
+| `will_version_release_preferences` | `will_version_id`, `category`, `created_at` | Snapshot of release categories for each version |
+| `consent_records` | `id`, `will_id`, `will_version_id`, `user_id`, `policy_version`, `consent_type`, `accepted_at` | Append-only consent audit tied to each version |
+| `participants` | `id`, `will_id`, `role`, `did_reference`, `eligibility_status`, `created_at` | Deferred: trustee/witness/nominee metadata, not implemented |
+| `witness_requests` | `id`, `will_id`, `status`, `requested_at`, `expires_at` | Deferred: delivery identifiers belong in a protected adapter store |
+| `attestations` | `id`, `will_id`, `participant_id`, `channel`, `proof_commitment`, `attested_at`, `status` | Deferred: store commitment/reference, not raw ZK proof |
+| `heartbeats` | `id`, `will_id`, `signed_payload_hash`, `occurred_at`, `verified_at`, `key_version` | Deferred: retain minimal audit metadata only |
+| `state_transitions` | `id`, `will_id`, `from_state`, `to_state`, `reason_code`, `actor_type`, `correlation_id`, `occurred_at` | Deferred append-only audit trail for workflow state |
+| `idempotency_keys` | `scope`, `key`, `request_hash`, `response_reference`, `expires_at` | Deferred duplicate-request protection for future state changes |
+| `outbox_events` | `id`, `aggregate_id`, `type`, `payload_reference`, `created_at`, `published_at` | Deferred transactional outbox; payload must stay redacted |
 
 ## Constraints and indexes
 
-- `wills.state` is a constrained enum: `active`, `pending_verification`, `grace_period`, `settled`.
-- Foreign keys cascade only to non-audit operational data; retain redacted audit records according to approved policy.
-- Unique `(will_id, role, did_reference)` on participants and unique `(scope, key)` on idempotency keys.
-- Index state/time queries: `wills(state, updated_at)`, `heartbeats(will_id, occurred_at desc)`, `witness_requests(status, expires_at)`, `state_transitions(will_id, occurred_at desc)`.
+- `digital_wills.status` and `will_versions.status` are constrained to `draft` or `published`.
+- `digital_wills_active_user_uidx` enforces at most one non-deleted active will per user.
+- `will_release_preferences` and `will_version_release_preferences` constrain categories to `financial`, `private`, or `community_shareable`.
+- `will_versions` is unique on `(will_id, version)` and indexed by `(will_id, version desc)` for history reads.
+- `consent_records` is indexed by `(will_id, accepted_at desc)` for audit retrieval.
+- Foreign keys cascade to will metadata and consent/version rows on account deletion; the application soft-deletes only the active `digital_wills` row during a normal will delete.
 - Use row-level authorization in application/service layer initially; evaluate PostgreSQL RLS before multi-tenant production.
 - `users.email` is unique, lowercase, and bounded to 254 characters; display names are bounded to 100 characters. `refresh_tokens.token_hash` is unique and `refresh_tokens_active_user_idx` supports session lookup/expiry cleanup.
+
+## Implemented enrollment schema rationale
+
+- `digital_wills` is optimized for the current read path and owner-level uniqueness.
+- `will_versions` preserves immutable snapshots so each update increments a version without overwriting history.
+- `consent_records` is separate from the current/snapshot tables so future policy, legal, or publication consent types can be added without reshaping the main aggregate.
+- `will_release_preferences` and `will_version_release_preferences` were added because category preferences are multi-valued and need both a current normalized form and a historical snapshot without denormalized arrays.
 
 ## Redis keys (indicative)
 
@@ -48,4 +59,4 @@ Use ordered, reviewed SQL migrations, one logical change per migration, reversib
 
 ## Last updated
 
-2026-07-12 — authentication users and hashed refresh-token schema added in migration `000002`.
+2026-07-12 — Digital Will enrollment schema added in migration `000003`.

@@ -73,3 +73,21 @@ Decisions are append-only. Supersede an entry rather than silently changing it.
 - Status: accepted (2026-07-12)
 - Decision: password hashes use bcrypt cost 12. Access tokens are HS256 JWTs with a 15-minute default lifetime. Refresh tokens are 32-byte random opaque values, stored only as SHA-256 hashes, rotated atomically on use, and expire after 30 days by default.
 - Consequence: no password, raw refresh token, or token secret is persisted in application data or logs. A compromise of the refresh-token table does not permit direct session replay; a compromise of the JWT secret still requires incident rotation and invalidation procedures.
+
+## ADR-013 — Keep Digital Will enrollment isolated from authentication and later execution workflows
+
+- Status: accepted (2026-07-12)
+- Decision: `services/enrollment` owns only the authenticated user's Digital Will metadata, consent capture, and version history. It validates Bearer access tokens using the shared JWT secret/issuer contract, but it does not depend on `services/auth` internals or own passwords, sessions, trustees, heartbeat state, notifications, or execution behavior.
+- Consequence: the enrollment boundary stays narrow and testable. Future heartbeat, witness, trustee, DID, and execution capabilities can evolve behind separate services without coupling account state to will-domain behavior.
+
+## ADR-014 — Model the will as a current aggregate plus append-only version and consent records
+
+- Status: accepted (2026-07-12)
+- Decision: store the active will in `waaris.digital_wills`, append every create/update to `waaris.will_versions`, and record every accepted policy version in `waaris.consent_records`. Normalize release-category selections into separate current and versioned preference tables rather than embedding mutable arrays in the main rows.
+- Consequence: the API can read the current will cheaply while preserving an immutable history for audit and rollback analysis. Consent evidence stays queryable per version, and category preferences remain normalized for future reporting and validation.
+
+## ADR-015 — Soft-delete the active will and require consent on every write
+
+- Status: accepted (2026-07-12)
+- Decision: `DELETE /api/v1/will` marks the current will deleted instead of removing historical rows. `POST` and `PUT` both require `policyVersionAccepted` and record a fresh consent event tied to the newly created will version.
+- Consequence: users can recreate a new active will later without erasing historical version/consent evidence, while every material metadata change remains associated with an explicit accepted policy version. Account deletion still cascades through the user foreign key and removes the user's will data.

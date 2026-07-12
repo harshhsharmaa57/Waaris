@@ -31,7 +31,17 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 - [x] Add application unit tests, HTTP integration-flow tests, and opt-in PostgreSQL integration test.
 - [x] Update local Compose, environment examples, Makefile/CI package checks, database, API, security, and decision documentation.
 
-## Next: Phase 0 foundation
+## Done: Milestone 3 — Digital Will Enrollment
+
+- [x] Implement isolated `enrollment` service with clean domain/application/infrastructure/HTTP boundaries.
+- [x] Add authenticated CRUD endpoints for one active Digital Will per user plus version-history retrieval.
+- [x] Support `draft` and `published` states, version increments on every write, timestamps, dormancy/grace policy storage, policy-version acceptance, and normalized release-category preferences.
+- [x] Add append-only consent records and append-only will-version snapshots while keeping the current aggregate separately queryable.
+- [x] Add PostgreSQL migrations for `digital_wills`, `will_versions`, `consent_records`, and normalized release-preference tables.
+- [x] Add application tests, HTTP integration/contract tests, and opt-in PostgreSQL migration/repository integration tests.
+- [x] Update local Compose plus the affected context, plan, progress, decision, database, API, deployment, and security documentation.
+
+## Remaining Phase 0 foundation
 
 - [ ] Establish repository layout and toolchain manifests for Go, TypeScript, React Native, Solidity, and Python components.
 - [ ] Define a supported-version matrix and local developer bootstrap.
@@ -43,9 +53,9 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 - [ ] Add test harnesses, fixtures, coverage reporting, and end-to-end test topology.
 - [ ] Add local observability stack and operational runbooks.
 
-## Phase 1 safe MVP
+## Next: Phase 1 safe MVP
 
-- [ ] Implement enrollment metadata and consent/version records.
+- [x] Implement enrollment metadata and consent/version records.
 - [ ] Implement signed heartbeat verification and replay protection.
 - [ ] Implement notification/escalation workflow with test adapters.
 - [ ] Implement non-ZK single-witness confirmation and grace-period transitions.
@@ -61,4 +71,4 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 
 ## Last updated
 
-2026-07-12 — Milestone 2 completed; remaining Phase 0 items retained.
+2026-07-12 — Milestone 3 completed; heartbeat is the next recommended feature milestone.

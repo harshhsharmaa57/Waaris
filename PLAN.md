@@ -27,9 +27,11 @@ This is the executable roadmap for the README specification. It intentionally st
 
 Exit criteria: a clean checkout can run quality checks and local dependencies; services can expose health endpoints; CI reports are actionable.
 
+Status on 2026-07-12: the monorepo baseline, auth service, and Digital Will enrollment service are implemented. Remaining Phase 0 work is focused on NATS, observability, deployment manifests/Terraform, mobile skeletons, and broader scanning/release automation.
+
 ### Phase 1 — Safe local MVP
 
-1. Implement enrollment metadata: user public-key commitment, timing policy, categories, trustee/witness references, nominees, and consent records.
+1. Implement enrollment metadata: current milestone delivered the safe subset only: single-owner Digital Will metadata, timing policy, draft/published state, release categories, version history, and consent records. Trustee/witness references, nominees, and any sensitive-content references remain deferred.
 2. Implement signed heartbeat intake with replay protection, server-side verification, Redis-assisted liveness tracking, and immutable-but-redacted audit events.
 3. Implement notification scheduling and escalation; make every delivery channel mockable.
 4. Implement a local, non-ZK single-witness confirmation workflow that can only advance to a grace period.
@@ -82,4 +84,4 @@ Foundation → enrollment/heartbeat → notifications/witness grace flow → cli
 
 ## Last updated
 
-2026-07-11 — initial plan; no implementation phases have started.
+2026-07-12 — foundation, authentication, and Digital Will enrollment documented; heartbeat is the next milestone.
