@@ -71,7 +71,8 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 - [x] Implement local Mailpit notification workflow with test adapter boundaries.
 - [x] Implement local trustee confirmation and grace-period transitions.
 - [x] Implement liveness override and audited state reset.
-- [ ] Implement interactive enrollment/check-in and trustee portal user journeys.
+- [x] Implement interactive enrollment/check-in and trustee portal user journeys.
+  - Frontend integrated with real backend APIs; Vite proxy eliminates CORS; AuditEvent/Notification types corrected.
 
 ## Explicitly deferred
 
@@ -82,4 +83,4 @@ Update this file, `PROGRESS.md`, and `.context.md whenever a task is completed, 
 
 ## Last updated
 
-2026-07-13 — local MVP workflow and hardening completed; deployment/operational readiness is next.
+2026-07-14 — frontend-backend integration complete; interactive portal user journeys wired to real APIs.

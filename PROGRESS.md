@@ -17,10 +17,11 @@ The local MVP and its hardening baseline are complete. The repository now provid
 | 2026-07-12 | Completed Milestone 3 Digital Will enrollment | `services/enrollment`, migration `000003`, enrollment API/database/decision specifications |
 | 2026-07-13 | Fixed GitHub Actions Compose validation for required secret interpolation | `.github/workflows/ci.yml`, `.context.md`, `DECISIONS.md` |
 | 2026-07-13 | Completed local MVP workflow and hardening | lifecycle/notification/audit migrations, auth/enrollment service hardening, PostgreSQL CI validation |
+| 2026-07-14 | Integrated frontend with backend | Created `.env`, Vite proxy (`/v1`→auth, `/api`→enrollment), fixed `AuditEvent`/`Notification` type mappings, installed npm deps, all services running |
 
 ## In progress
 
-None. Recommended next work is operational v1.0 readiness: managed secrets, TLS ingress, distributed rate limits, observability, backups/restore drills, and external review. No new product feature is required for the local MVP.
+None. Frontend is integrated with backend. Recommended next work is operational v1.0 readiness: managed secrets, TLS ingress, distributed rate limits, observability, backups/restore drills, and external review. No new product feature is required for the local MVP.
 
 ## Blockers and risks
 
@@ -33,4 +34,4 @@ None. Recommended next work is operational v1.0 readiness: managed secrets, TLS 
 
 ## Last updated
 
-2026-07-13 — local MVP workflow and hardening baseline completed; documentation synchronized.
+2026-07-14 — frontend integrated with backend; all local services running and verified.

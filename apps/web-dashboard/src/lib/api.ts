@@ -1,7 +1,10 @@
 import { mockAuth, mockEnrollment } from "./mock";
 
-const AUTH_BASE = import.meta.env.VITE_AUTH_BASE_URL ?? "http://localhost:8080";
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8081";
+// Use relative URLs so the Vite dev-server proxy routes /v1 → auth (8080)
+// and /api → enrollment (8081) without any CORS issues.
+// In production (built bundle), set VITE_AUTH_BASE_URL / VITE_API_BASE_URL.
+const AUTH_BASE = import.meta.env.VITE_AUTH_BASE_URL ?? "";
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 /**
  * Detect if the backend is reachable. Cached after first probe.
@@ -197,26 +200,50 @@ export interface LivenessStatus {
 
 export interface AuditEvent {
   id: string;
-  userId: string | null;
-  willId: string | null;
-  actor: string;
-  event: string;
+  userId?: string | null;
+  willId?: string | null;
+  actorType: string;
+  actorId: string;
+  eventType: string;
   correlationId: string;
   details: string;
+  occurredAt: string;
+  // Convenience aliases populated by api.ts for backward compat with pages
+  actor: string;
+  event: string;
   createdAt: string;
 }
 
 export interface Notification {
   id: string;
   willId: string;
+  userId: string;
+  eventType: string;
+  channel: string;
+  recipientName: string;
+  recipientEmail: string;
+  subject: string;
+  body: string;
   status: string;
+  queuedAt: string;
+  trusteeId?: string;
+  sentAt?: string;
+  failureMessage?: string;
+  // Convenience alias: pages use createdAt
   createdAt: string;
 }
 
 export interface VerificationPending {
   id: string;
   willId: string;
+  userId: string;
+  thresholdRequired: number;
   status: string;
+  ownerEmail: string;
+  ownerDisplayName: string;
+  trustee: Trustee;
+  latestDecision?: string;
+  createdAt: string;
 }
 
 // ── Enrollment ──
@@ -289,12 +316,29 @@ export const enrollment = {
     return request<void>(API_BASE, `/api/v1/verifications/${id}/abstain`, { method: "POST" });
   },
 
-  getNotifications: async () => {
-    if (!(await isBackendAvailable())) return mockCall(() => mockEnrollment.getNotifications()) as Promise<{ history: Notification[] }>;
-    return request<{ history: Notification[] }>(API_BASE, "/api/v1/notifications/history");
-  },
+
+
   getAuditHistory: async () => {
     if (!(await isBackendAvailable())) return mockCall(() => mockEnrollment.getAuditHistory()) as Promise<{ history: AuditEvent[] }>;
-    return request<{ history: AuditEvent[] }>(API_BASE, "/api/v1/audit/history");
+    const raw = await request<{ history: Record<string, unknown>[] }>(API_BASE, "/api/v1/audit/history");
+    // Normalize backend field names → frontend field names expected by AuditPage
+    const history = (raw.history ?? []).map((e) => ({
+      ...e,
+      actor: (e["actorId"] as string) ?? "",
+      event: (e["eventType"] as string) ?? "",
+      details: (e["details"] as string) ?? "",
+      createdAt: (e["occurredAt"] as string) ?? "",
+    })) as AuditEvent[];
+    return { history };
+  },
+  getNotifications: async () => {
+    if (!(await isBackendAvailable())) return mockCall(() => mockEnrollment.getNotifications()) as Promise<{ history: Notification[] }>;
+    const raw = await request<{ history: Record<string, unknown>[] }>(API_BASE, "/api/v1/notifications/history");
+    // Normalize: pages use n.createdAt, backend sends queuedAt
+    const history = (raw.history ?? []).map((n) => ({
+      ...n,
+      createdAt: (n["queuedAt"] as string) ?? "",
+    })) as Notification[];
+    return { history };
   },
 };
